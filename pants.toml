@@ -49,7 +49,7 @@ interpreter_constraints = [
 inits = true
 
 [bandit]
-lockfile = "lockfiles/bandit"
+lockfile = "build-support/lockfiles/bandit"
 version = "bandit==1.7.0"
 args = [
   "-lll",  # only HIGH severity level
@@ -58,11 +58,11 @@ args = [
 ]
 
 [black]
-lockfile = "lockfiles/black"
+lockfile = "build-support/lockfiles/black"
 version = "black==20.8b1"
 
 [flake8]
-lockfile = "lockfiles/flake8"
+lockfile = "build-support/lockfiles/flake8"
 version = "flake8>=3.7.9,<3.9"
 #extra_requirements = [
 #  # license check plugin
@@ -70,8 +70,16 @@ version = "flake8>=3.7.9,<3.9"
 #]
 #config = ""
 
+[isort]
+lockfile = "build-support/lockfiles/isort"
+#version = ""
+
+[docformatter]
+lockfile = "build-support/lockfiles/docformatter"
+#version = ""
+
 [pytest]
-lockfile = "lockfiles/pytest"
+lockfile = "build-support/lockfiles/pytest"
 version = "pytest>=6.0.1,<6.3"
 extra_requirements.add = [
   "pytest-benchmark[histogram]==3.4.1",
