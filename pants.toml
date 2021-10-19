@@ -18,12 +18,19 @@ backend_packages = [
   "pants.backend.python.lint.docformatter",
   "pants.backend.python.lint.flake8",
   "pants.backend.python.lint.isort",
-  "pants.backend.python.typecheck.mypy",
+  # mypy is slow. enable after this is fixed:
+  # https://github.com/pantsbuild/pants/issues/10864
+  #"pants.backend.python.typecheck.mypy",
+  # pylint is slow and painful. don't bother.
 
   # shell
   "pants.backend.shell",
   "pants.backend.shell.lint.shfmt",
   "pants.backend.shell.lint.shellcheck",
+
+  # docker
+  "pants.backend.experimental.docker",
+  "pants.backend.experimental.docker.lint.hadolint",
 
   # internal plugins in pants-plugins/
   # ...
@@ -50,11 +57,11 @@ inits = true
 
 [bandit]
 lockfile = "build-support/lockfiles/bandit"
-version = "bandit==1.7.0"
+#version = ""
 args = [
-  "-lll",  # only HIGH severity level
-  "--exclude",
-  "build,dist",
+  "--quiet"
+#  "-c"
+#  "pyproject.toml"
 ]
 
 [black]
@@ -68,7 +75,9 @@ version = "flake8>=3.7.9,<3.9"
 #  # license check plugin
 #  "st2flake8==0.1.0",
 #]
-#config = ""
+# flake8 doesn't support pyproject.toml
+# https://flake8.pycqa.org/en/latest/user/configuration.html
+#config = "build-support/.flake8"
 
 [isort]
 lockfile = "build-support/lockfiles/isort"
