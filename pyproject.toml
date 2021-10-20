@@ -9,8 +9,20 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.8"
+opsdroid = {version = "^0.24.0", extras = ["database_mongo", "database_redis"]}
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.extras]
+connector_matrix = ["opsdroid[connector_matrix,database_matrix]"]
+connector_matrix_e2e = ["opsdroid[connector_matrix_e2e,connector_matrix,database_matrix]"]
+connector_mattermost = ["opsdroid[connector_mattermost]"]
+connector_slack = ["opsdroid[connector_slack]"]
+connector_webex = ["opsdroid[connector_webex]"]
+connector_teams = ["opsdroid[connector_teams]"]
+connector_telegram = ["opsdroid[connector_telegram]"]
+parser_dialogflow = ["opsdroid[parser_dialogflow]"]
+parser_watson = ["opsdroid[parser_watson]"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
