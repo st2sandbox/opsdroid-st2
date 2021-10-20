@@ -58,10 +58,9 @@ inits = true
 [bandit]
 lockfile = "build-support/lockfiles/bandit"
 version = "bandit>=1.7.0,<1.8"
+#config = "pyproject.toml"
 args = [
   "--quiet"
-#  "-c"
-#  "pyproject.toml"
 ]
 
 [black]
@@ -99,7 +98,7 @@ extra_requirements.add = [
 
   # other possible plugins
   #"pytest-timeout",  # time limit on tests
-  #"pytest-cov",  # coverage
+  #"pytest-cov",  # coverage (pants installs this by default)
   #"pytest-mock",  # more convenient mocking
 
   # do not add: xdist (pants runs tests in parallel already)
