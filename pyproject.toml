@@ -14,5 +14,8 @@ skip_gitignore = true
 # eventlet is prohibited in DroidStorm
 # remove_imports = eventlet
 
+# pants says this can resolve some issues
+default_section = THIRDPARTY
+
 #https://bandit.readthedocs.io/en/latest/config.html
 #[tool.bandit]
