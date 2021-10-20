@@ -15,7 +15,7 @@ skip_gitignore = true
 # remove_imports = eventlet
 
 # pants says this can resolve some issues
-default_section = THIRDPARTY
+default_section = "THIRDPARTY"
 
 #https://bandit.readthedocs.io/en/latest/config.html
 #[tool.bandit]
