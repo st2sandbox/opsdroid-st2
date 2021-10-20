@@ -1,0 +1,113 @@
+---
+name: Pants Test
+
+on:
+  push:
+    branches:
+      # only on merges to main branch
+      - main
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
+    tags:
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_request:
+    type: [opened, reopened, edited]
+    branches:
+      # Only for PRs targeting these branches
+      - main
+      - v[0-9]+.[0-9]+
+#  schedule:
+#    # run every night at midnight
+#    - cron:  '0 0 * * *'
+
+jobs:
+  # Special job which automatically cancels old runs for the same branch, prevents runs for the
+  # same file set which has already passed, etc.
+  pre_job:
+    name: Skip Duplicate Jobs Pre Job
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@4c656bbdb6906310fa6213604828008bc28fe55d # v3.3.0
+        with:
+          cancel_others: 'true'
+          github_token: ${{ github.token }}
+
+  # Lint checks which don't depend on any service containers, etc. to be running.
+  lint-checks:
+    needs: pre_job
+    # NOTE: We always want to run job on master since we run some additional checks there (code
+    # coverage, etc)
+    if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: 'Test (pants runs: pytest)'
+            python-version-short: '3.8'
+            python-version: '3.8.10'
+
+    env:
+      COLUMNS: '120'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: 'Set up Python for Pants (3.9)'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: 'Set up Python (${{ matrix.python-version }})'
+        uses: actions/setup-python@v2
+        with:
+          python-version: '${{ matrix.python-version }}'
+
+      - name: Get Pants Cache Merge Base Commit (base branch commit to pull cache from)
+        id: pants-cache-commit
+        run: |
+          COMMIT=$(git merge-base ${GITHUB_BASE_REF:-main} HEAD | head -n1)
+          echo MERGEBASE=${COMMIT}
+          echo "::set-output name=MERGEBASE::${COMMIT}"
+
+      - name: Cache Pants Caches
+        uses: actions/cache@v2
+        id: pants-cache
+        with:
+          path: |
+            ~/.cache/pants/setup
+            ~/.cache/pants/lmdb_store
+            ~/.cache/pants/named_caches
+          key: ${{ runner.os }}-pants-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-pants-${{ steps.pants-cache-commit.outputs.MERGEBASE }}
+            ${{ runner.os }}-pants-
+
+      - name: Cache Python Dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('build-support/lockfiles/*', 'poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Bootstrap Pants
+        run: |
+          ./pants --version
+
+      - name: Test
+        run: |
+          ./pants test ::
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v2
+        with:
+          name: pants-log
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
