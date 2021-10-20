@@ -43,7 +43,7 @@ root_patterns = [
 ]
 
 [python-setup]
-resolver_version = "pip-2020-resolver"
+# since pants v2.5, only pip-2020-resolver is supported
 # experimental_lockfile = "lockfiles/opsdroid-st2"
 interpreter_constraints = [
   # OpsDroid requires python 3.7 or 3.8
