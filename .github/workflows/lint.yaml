@@ -93,7 +93,7 @@ jobs:
         with:
           path: |
             ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('constraints-pants.txt', 'requirements-pants.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('build-support/lockfiles/*', 'poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
