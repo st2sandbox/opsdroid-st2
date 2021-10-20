@@ -46,9 +46,9 @@ root_patterns = [
 resolver_version = "pip-2020-resolver"
 # experimental_lockfile = "lockfiles/opsdroid-st2"
 interpreter_constraints = [
-  // OpsDroid requires python 3.7 or 3.8
-  // StackStorm requires python 3.6 or 3.8
-  // so we only target 3.8 here.
+  # OpsDroid requires python 3.7 or 3.8
+  # StackStorm requires python 3.6 or 3.8
+  # so we only target 3.8 here.
   "CPython==3.8.*",
 ]
 
@@ -60,7 +60,7 @@ lockfile = "build-support/lockfiles/bandit"
 version = "bandit>=1.7.0,<1.8"
 #config = "pyproject.toml"
 args = [
-  "--quiet"
+  "--quiet",
 ]
 
 [black]
