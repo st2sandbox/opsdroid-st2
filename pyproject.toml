@@ -4,7 +4,7 @@ target-version = ['py38']
 
 [tool.isort]
 profile = "black"
-# line_length = 88
+line_length = 88
 skip_gitignore = true
 # atomic = true
 # force_alphabetical_sort_within_sections = true

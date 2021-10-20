@@ -1,0 +1,43 @@
+[flake8]
+# we use bugbear, so set this to 10% less
+max-line-length = 80
+
+ignore =
+    # E128: continuation line under-indented for visual indent - ignored for st2
+    #E128,
+    # E203: whitespace before ':' - conflicts with black
+    E203,
+    # E402: module level import not at top of file - ignored for st2
+    #E402,
+    # E501: line length limit - black manages line length
+    E501,
+    # E722: do not use bare except - ignored for st2
+    #E722,
+    # F821: undefined name - ignored for OpsDroid
+    #F821,
+    # W503: line break before binary operator - conflicts with black
+    W503
+    # W504: line break after binary operator - ignored for st2
+    #W504
+
+select =
+    # C: mccabe Complexity checks
+    C,
+    # E,W: pycodestyle Error, Warning
+    E,W,
+    # F: pyflakes checks
+    F,
+    # B: flake8-bugbear (B9xx are not enabled by default)
+    B,
+    # B950: Line too long - selected for OpsDroid
+    B950
+    # L: License check plugin by st2
+    #L
+
+# L102 - apache license header
+#enable-extensions = L101,L102
+# Configuration for flake8-copyright extension
+#copyright-check = True
+#copyright-min-file-size = 1
+# Settings for flake8-license
+#license-type = apache
