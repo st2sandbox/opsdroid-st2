@@ -63,6 +63,29 @@ class StackStormConnector(Connector):
         if not token and not api_key and not username:
             _LOGGER.error("You must define at least one StackStorm auth method.")
 
+        self._st2_event_types = [
+            # "st2.announcement__*",
+            "st2.announcement__chatops",
+            # "st2.workflow__create",
+            # "st2.workflow__update",
+            # "st2.workflow__delete",
+            # "st2.execution__create",
+            # "st2.execution__update",
+            # "st2.execution__delete",
+            # "st2.execution.output__create",
+            # "st2.execution.output__update",
+            # "st2.execution.output__delete",
+            # "st2.workflow.status__*",
+            # "st2.trigger__create",
+            # "st2.trigger__update",
+            # "st2.trigger__delete",
+            # "st2.trigger_instances_dispatch__trigger_instance",
+            # "st2.sensor__create",
+            # "st2.sensor__update",
+            # "st2.sensor__delete",
+            # TODO: need action alias event and pack event
+        ]
+
     async def connect(self):
         # create st2 client
         token = self.config.get("token", None)
@@ -104,32 +127,11 @@ class StackStormConnector(Connector):
         pass
 
     async def listen(self):
-        event_types = [
-            # "st2.announcement__*",
-            "st2.announcement__chatops",
-            # "st2.workflow__create",
-            # "st2.workflow__update",
-            # "st2.workflow__delete",
-            # "st2.execution__create",
-            # "st2.execution__update",
-            # "st2.execution__delete",
-            # "st2.execution.output__create",
-            # "st2.execution.output__update",
-            # "st2.execution.output__delete",
-            # "st2.workflow.status__*",
-            # "st2.trigger__create",
-            # "st2.trigger__update",
-            # "st2.trigger__delete",
-            # "st2.trigger_instances_dispatch__trigger_instance",
-            # "st2.sensor__create",
-            # "st2.sensor__update",
-            # "st2.sensor__delete",
-            # TODO: need action alias event and pack event
-        ]
+
         event_stream = self.client.managers["Stream"].listen(
-            event_types,
+            self.event_types,
             # **kwargs,
-        ):
+        )
         # create event steam generator
         while True:
             event = await next(event_stream)
