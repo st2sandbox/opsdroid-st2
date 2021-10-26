@@ -155,8 +155,9 @@ class StackStormConnector(Connector):
                     queue.put(_END), loop
                 ).result()
 
-        # create event steam generator
         while True:
+            # we want to run the thread concurrently, so we use threads instead of
+            # awaiting a loop.run_in_executor call
             threading.Thread(target=_events_to_queue_thread).start()
 
             event = None
@@ -186,4 +187,4 @@ class StackStormConnector(Connector):
 
     async def respond(self):
         pass
-    .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    |    .  |
+#   .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    |    .  |
