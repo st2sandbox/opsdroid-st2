@@ -1,5 +1,8 @@
 """A connector for StackStorm."""
 
+import asyncio
+import threading
+
 from opsdroid.connector import Connector, register_event
 from opsdroid.events import Event
 from st2client.client import DEFAULT_API_PORT, DEFAULT_AUTH_PORT, DEFAULT_STREAM_PORT, DEFAULT_API_VERSION, Client
@@ -127,28 +130,59 @@ class StackStormConnector(Connector):
         pass
 
     async def listen(self):
+        # st2client is not async, so we use a thread+queue to get events
+        # based on https://stackoverflow.com/a/62297994
+        loop = self.opsdroid.event_loop
+        queue = asyncio.Queue(1)
+        exception = None
+        _END = object()
 
-        event_stream = self.client.managers["Stream"].listen(
-            self.event_types,
-            # **kwargs,
-        )
+        st2_event_stream = self.client.managers["Stream"]
+
+        def _events_to_queue_thread():
+            try:
+                for event in st2_event_stream.listen(self.event_types):
+                    # This runs outside the event loop thread, so we
+                    # must use thread-safe API to talk to the queue.
+                    asyncio.run_coroutine_threadsafe(
+                        queue.put(event), loop
+                    ).result()
+            except Exception as e:
+                # ick. this is too broad
+                exception = e
+            finally:
+                asyncio.run_coroutine_threadsafe(
+                    queue.put(_END), loop
+                ).result()
+
         # create event steam generator
         while True:
-            event = await next(event_stream)
-            
-            # Convert to opsdroid Message object
-            #
-            # Message objects take a pointer to the connector to
-            # allow the skills to call the respond method
-            message = Message(
-                raw_message.text,
-                raw_message.user,
-                raw_message.room,
-                self
-            )
-            
-            # Parse the message with opsdroid
-            await opsdroid.parse(message)
+            threading.Thread(target=_events_to_queue_thread).start()
+
+            event = None
+            while event is not _END:
+                if event is not None:
+                    await self._process_st2_event(event)
+                event = await queue.get()
+
+            # TODO: handle exception raised in thread
+            # the thread died so start a new one.
+            # TODO: do i need a new queue?
+
+    async def _process_st2_event(self, event):
+        # Convert to opsdroid Message object
+        #
+        # Message objects take a pointer to the connector to
+        # allow the skills to call the respond method
+        message = Message(
+            raw_message.text,
+            raw_message.user,
+            raw_message.room,
+            self,
+        )
+
+        # Parse the message with opsdroid
+        await opsdroid.parse(message)
 
     async def respond(self):
         pass
