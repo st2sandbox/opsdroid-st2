@@ -3,6 +3,12 @@
 import asyncio
 import threading
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # used by st2client for event stream
+    import sseclient
+
 from opsdroid.connector import Connector, register_event
 from opsdroid.events import Event
 from st2client.client import DEFAULT_API_PORT, DEFAULT_AUTH_PORT, DEFAULT_STREAM_PORT, DEFAULT_API_VERSION, Client
@@ -121,6 +127,13 @@ class StackStormConnector(Connector):
         # register with StackStorm service registry
         # client.managers["ServiceRegistryGroups"]
         # client.managers["ServiceRegistryMembers"]
+        # we need to register to the groups with something like tooz
+        # st2 uses: st2common.service_setup.register_service_in_service_registry
+        # but we need to reimplements it because it pulls in:
+        # st2 logging (lots of py2 compat)
+        # oslo_config (ancient version, lots of globals, lots of import side effects)
+        # st2common.services.coordination
+        # st2common.util.system_info.get_process_info() #safe for us to use
 
         self.client = client
 
@@ -141,6 +154,27 @@ class StackStormConnector(Connector):
 
         def _events_to_queue_thread():
             try:
+                # the persistence layer publishes db model objects to rmq
+                # the st2 stream server listens to the transport queue (rmq)
+                # on behalf of each client (filtered per client request)
+                # rmq messages are pickled db model objects
+                # except announcement which is a dict
+                # for db models:
+                # st2common.stream.BaseListener.processor.process()
+                # processes each queue message and constructs the event name
+                # event_name = f"{exchange}__{routing_key}"
+                # and the body is built using model. from_model(body)
+                # where model is an API model object
+                # that gets encoded to json in
+                # st2stream.controllers.v1.stream.format()
+                # the BaseAPI object defines
+                # __json__(self): vars(self)
+                # so the props of the json object are the attributes of the api object
+                # the st2client uses sseclient to get the message stream
+                # each message has an event (type) and json encoded data
+                # the st2client only yields the decoded data:
+                # eg: yield orjson.loads(message. data)
+                # so I might need a separate listener for each event type
                 for event in st2_event_stream.listen(self.event_types):
                     # This runs outside the event loop thread, so we
                     # must use thread-safe API to talk to the queue.
@@ -160,7 +194,8 @@ class StackStormConnector(Connector):
             # awaiting a loop.run_in_executor call
             threading.Thread(target=_events_to_queue_thread).start()
 
-            event = None
+            # st2 returns this data as json. here it is decoded.
+            event: dict = None
             while event is not _END:
                 if event is not None:
                     await self._process_st2_event(event)
@@ -170,11 +205,13 @@ class StackStormConnector(Connector):
             # the thread died so start a new one.
             # TODO: do i need a new queue?
 
-    async def _process_st2_event(self, event):
+    async def _process_st2_event(self, event: dict):
         # Convert to opsdroid Message object
         #
         # Message objects take a pointer to the connector to
         # allow the skills to call the respond method
+
+        
         message = Message(
             raw_message.text,
             raw_message.user,
