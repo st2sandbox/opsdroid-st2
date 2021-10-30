@@ -10,6 +10,10 @@ license = "Apache-2.0"
 [tool.poetry.dependencies]
 python = "^3.8"
 opsdroid = {version = "^0.24.0", extras = ["database_mongo", "database_redis"]}
+# st2client
+# aiohttp
+# aiohttp-sse-client
+# yarl
 
 [tool.poetry.dev-dependencies]
 

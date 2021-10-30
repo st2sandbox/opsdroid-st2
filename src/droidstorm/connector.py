@@ -5,14 +5,13 @@ import threading
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    # used by st2client for event stream
-    import sseclient
-
+from aiohttp import ClientSession
+from aiohttp_sse_client import client as sse_client
 from opsdroid.connector import Connector, register_event
 from opsdroid.events import Event
 from st2client.client import DEFAULT_API_PORT, DEFAULT_AUTH_PORT, DEFAULT_STREAM_PORT, DEFAULT_API_VERSION, Client
 from voluptuous import Inclusive, Required
+from yarl import URL
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = {
@@ -137,81 +136,86 @@ class StackStormConnector(Connector):
 
         self.client = client
 
+        # st2client is not async, and doesn't emit event types,
+        # so we roll out own.
+        self._events_session = ClientSession()
+
+        # https://api.stackstorm.com/stream/v1/stream/#/stream_controller.get_all
+        event_stream_url = URL(self.stream_url) / "stream" %
+            {"events": ",".join(self._st2_event_types)}
+        headers = {}
+        api_key = self.config.get("api_key", None)
+        if api_key:
+            headers["St2-Api-Key"] = api_key
+        else:
+            headers["X-Auth-Token"] = self.client.token
+        self.event_stream = sse_client.EventSource(
+            event_stream_url,
+            # option={"method": "GET"},
+            # reconnection_time=,
+            # max_connect_retry=,
+            session=self._events_session,
+            # on_open=,
+            # on_message=,
+            # on_error=,
+            # **kwargs
+            headers=headers,
+        )
+        await self.event_stream.connect()
+
     async def disconnect(self):
         # unregister from registry
         # close client
-        pass
+        await self.event_stream.close()
+        await self._events_session.close()
 
     async def listen(self):
-        # st2client is not async, so we use a thread+queue to get events
-        # based on https://stackoverflow.com/a/62297994
-        loop = self.opsdroid.event_loop
-        queue = asyncio.Queue(1)
-        exception = None
-        _END = object()
+        # st2 returns event.data as encoded json. we need to decode it.
+        event: sse_client.MessageEvent
+        try:
+            async for event in self.event_stream:
+                # TODO: decode json in event.data
+                await self._process_st2_event(event)
+        except ConnectionError:
+            pass
 
-        st2_event_stream = self.client.managers["Stream"]
+        # how ST2 generated events server-side:
+        #
+        # the persistence layer publishes db model objects to rmq
+        # the st2 stream server listens to the transport queue (rmq)
+        # on behalf of each client (filtered per client request)
+        # rmq messages are pickled db model objects
+        # except announcement which is a dict
+        # for db models:
+        # st2common.stream.BaseListener.processor.process()
+        # processes each queue message and constructs the event name
+        # event_name = f"{exchange}__{routing_key}"
+        # and the body is built using model. from_model(body)
+        # where model is an API model object
+        # that gets encoded to json in
+        # st2stream.controllers.v1.stream.format()
+        # the BaseAPI object defines
+        # __json__(self): vars(self)
+        # so the props of the json object are the attributes of the api object
+        # the st2client uses sseclient to get the message stream
+        # each message has an event (type) and json encoded data
+        # the st2client only yields the decoded data:
+        # eg: yield orjson.loads(message. data)
+        # so I might need a separate listener for each event type
 
-        def _events_to_queue_thread():
-            try:
-                # the persistence layer publishes db model objects to rmq
-                # the st2 stream server listens to the transport queue (rmq)
-                # on behalf of each client (filtered per client request)
-                # rmq messages are pickled db model objects
-                # except announcement which is a dict
-                # for db models:
-                # st2common.stream.BaseListener.processor.process()
-                # processes each queue message and constructs the event name
-                # event_name = f"{exchange}__{routing_key}"
-                # and the body is built using model. from_model(body)
-                # where model is an API model object
-                # that gets encoded to json in
-                # st2stream.controllers.v1.stream.format()
-                # the BaseAPI object defines
-                # __json__(self): vars(self)
-                # so the props of the json object are the attributes of the api object
-                # the st2client uses sseclient to get the message stream
-                # each message has an event (type) and json encoded data
-                # the st2client only yields the decoded data:
-                # eg: yield orjson.loads(message. data)
-                # so I might need a separate listener for each event type
-                for event in st2_event_stream.listen(self.event_types):
-                    # This runs outside the event loop thread, so we
-                    # must use thread-safe API to talk to the queue.
-                    asyncio.run_coroutine_threadsafe(
-                        queue.put(event), loop
-                    ).result()
-            except Exception as e:
-                # ick. this is too broad
-                exception = e
-            finally:
-                asyncio.run_coroutine_threadsafe(
-                    queue.put(_END), loop
-                ).result()
-
-        while True:
-            # we want to run the thread concurrently, so we use threads instead of
-            # awaiting a loop.run_in_executor call
-            threading.Thread(target=_events_to_queue_thread).start()
-
-            # st2 returns this data as json. here it is decoded.
-            event: dict = None
-            while event is not _END:
-                if event is not None:
-                    await self._process_st2_event(event)
-                event = await queue.get()
-
-            # TODO: handle exception raised in thread
-            # the thread died so start a new one.
-            # TODO: do i need a new queue?
-
-    async def _process_st2_event(self, event: dict):
+    async def _process_st2_event(self, raw_message: sse_client.MessageEvent):
         # Convert to opsdroid Message object
         #
         # Message objects take a pointer to the connector to
         # allow the skills to call the respond method
 
+        # raw_message.type: str  # event field or None
+        # raw_message.message: str  # event field
+        # raw_message.data: str  # data field as encoded jspn
+        # raw_message.origin: str  # str(response.real_url.origin())
+        # raw_message.last_event_id: str  # id field
         
+        # TODO: what goes here?
         message = Message(
             raw_message.text,
             raw_message.user,
