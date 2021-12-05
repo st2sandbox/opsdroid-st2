@@ -14,11 +14,7 @@ from st2client.client import DEFAULT_API_PORT, DEFAULT_AUTH_PORT, DEFAULT_STREAM
 from voluptuous import Inclusive, Required
 from yarl import URL
 
-from .events import (
-    StackStormActionAliasEvent,
-    StackStormAnnouncement,
-    StackStormResourceCUDEvent,
-)
+import .events as st2_events
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = {
@@ -234,35 +230,49 @@ class StackStormConnector(Connector):
             return
 
         # drop initial "st2." and split
-        resource_type, action = raw_event.type[4:].split("__", 1)
+        resource_type, route = raw_event.type[4:].split("__", 1)
 
         data = orjson.loads(raw_event.data)
 
         if resource_type == "announcement":
-            # special resource where the actions are actually route names
-            # announcement_route is "chatops" in most cases
-            announcement_route = action
-            event = StackStormAnnouncement(
+            event = st2_events.Announcement(
                 text=data,
-                target=announcement_route,
+                # route is "chatops" in most cases
+                # otherwise, it is a user-defined route
+                target=route,
                 raw_event=raw_event,
                 connector=self,
             )
         elif resource_type == "actionalias":
-            event = StackStormActionAliasEvent(
+            if route == "create":
+                event = st2_events.CreateActionAlias(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "update":
+                event = st2_events.UpdateActionAlias(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "delete":
+                event = st2_events.DeleteActionAlias(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            else:
+                # unknown route
+                return
+        else:  # unknown resource_type. assume cud
+            event = st2_events.ResourceCUD(
                 resource=data,
-                action=action,
-                raw_event=raw_event,
-                connector=self,
-            )
-        else:  # unknown resource_type
-            event = StackStormResourceCUDEvent(
-                resource=data,
-                action=action,
                 raw_event=raw_event,
                 connector=self,
             )
             event.resource_type = resource_type
+            event.cud = route
 
         # Parse the message/event with opsdroid which triggers skills
         await self.opsdroid.parse(event)
