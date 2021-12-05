@@ -97,7 +97,14 @@ class StackStormConnector(Connector):
             # "st2.sensor__create",
             # "st2.sensor__update",
             # "st2.sensor__delete",
-            # TODO: need action alias event and pack event
+
+            # TODO: st2 needs new actionalias and pack events
+            # "st2.actionalias__create",
+            # "st2.actionalias__update",
+            # "st2.actionalias__delete",
+            # "st2.pack__create",
+            # "st2.pack__update",
+            # "st2.pack__delete",
         ]
 
     async def connect(self):
@@ -258,6 +265,28 @@ class StackStormConnector(Connector):
                 )
             elif route == "delete":
                 event = st2_events.DeleteActionAlias(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            else:
+                # unknown route
+                return
+        elif resource_type == "pack":
+            if route == "create":
+                event = st2_events.CreatePack(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "update":
+                event = st2_events.UpdatePack(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "delete":
+                event = st2_events.DeletePack(
                     resource=data,
                     raw_event=raw_event,
                     connector=self,

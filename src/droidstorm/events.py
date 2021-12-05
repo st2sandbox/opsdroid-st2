@@ -43,3 +43,27 @@ class DeleteActionAlias(ResourceCUD):
     
     resource_type = "ActionAlias"
     cud = "delete"
+
+
+class CreatePack(ResourceCUD):
+    """An event created on Pack Create
+    """
+    
+    resource_type = "Pack"
+    cud = "create"
+
+
+class UpdatePack(ResourceCUD):
+    """An event created on Pack Update
+    """
+    
+    resource_type = "Pack"
+    cud = "update"
+
+
+class DeletePack(ResourceCUD):
+    """An event created on Pack Delete
+    """
+    
+    resource_type = "Pack"
+    cud = "delete"
