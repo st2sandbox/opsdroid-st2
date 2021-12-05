@@ -7,11 +7,18 @@ from typing import TYPE_CHECKING
 
 from aiohttp import ClientSession
 from aiohttp_sse_client import client as sse_client
+import orjson
 from opsdroid.connector import Connector, register_event
 from opsdroid.events import Event
 from st2client.client import DEFAULT_API_PORT, DEFAULT_AUTH_PORT, DEFAULT_STREAM_PORT, DEFAULT_API_VERSION, Client
 from voluptuous import Inclusive, Required
 from yarl import URL
+
+from .events import (
+    StackStormActionAliasEvent,
+    StackStormAnnouncement,
+    StackStormResourceCUDEvent,
+)
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = {
@@ -72,8 +79,11 @@ class StackStormConnector(Connector):
             _LOGGER.error("You must define at least one StackStorm auth method.")
 
         self._st2_event_types = [
-            # "st2.announcement__*",
-            "st2.announcement__chatops",
+            # anything other than chatops is a user-defined route
+            "st2.announcement__*",
+            # chatops is there StackStorm-defined route
+            # "st2.announcement__chatops",
+
             # "st2.workflow__create",
             # "st2.workflow__update",
             # "st2.workflow__delete",
@@ -115,6 +125,7 @@ class StackStormConnector(Connector):
             username = self.config.get("username")
             password = self.config.get("password")
             token = Token()
+            # TODO: this is a blocking api call
             client.tokens.create(
                 token,
                 auth=(username=username, password=password),
@@ -200,32 +211,59 @@ class StackStormConnector(Connector):
         # the st2client uses sseclient to get the message stream
         # each message has an event (type) and json encoded data
         # the st2client only yields the decoded data:
-        # eg: yield orjson.loads(message. data)
+        # eg: yield orjson.loads(message.data)
         # so I might need a separate listener for each event type
 
-    async def _process_st2_event(self, raw_message: sse_client.MessageEvent):
-        # Convert to opsdroid Message object
+    async def _process_st2_event(self, raw_event: sse_client.MessageEvent):
+        # Convert to opsdroid Message/Event object
         #
-        # Message objects take a pointer to the connector to
+        # Message/Event objects take a pointer to the connector to
         # allow the skills to call the respond method
 
-        # raw_message.type: str  # event field or None
-        # raw_message.message: str  # event field
-        # raw_message.data: str  # data field as encoded jspn
-        # raw_message.origin: str  # str(response.real_url.origin())
-        # raw_message.last_event_id: str  # id field
-        
-        # TODO: what goes here?
-        message = Message(
-            raw_message.text,
-            raw_message.user,
-            raw_message.room,
-            self,
-        )
+        # raw_event.type: str  # event field or None
+        # raw_event.message: str  # event field
+        # raw_event.data: str  # data field as encoded json
+        # raw_event.origin: str  # str(response.real_url.origin())
+        # raw_event.last_event_id: str  # id field
 
-        # Parse the message with opsdroid
-        await opsdroid.parse(message)
+        if not raw_event.type or not raw_event.type. startswith("st2."):
+            # log unknown event. this should not happen
+            return
 
-    async def respond(self):
-        pass
+        # drop initial "st2." and split
+        resource_type, action = raw_event.type[4:].split("__", 1)
+
+        data = orjson.loads(raw_event.data)
+
+        if resource_type == "announcement":
+            # special resource where the actions are actually route names
+            # announcement_route is "chatops" in most cases
+            announcement_route = action
+            event = StackStormAnnouncement(
+                text=data,
+                target=announcement_route,
+                raw_event=raw_event,
+                connector=self,
+            )
+        elif resource_type == "actionalias":
+            event = StackStormActionAliasEvent(
+                resource=data,
+                action=action,
+                raw_event=raw_event,
+                connector=self,
+            )
+        else:  # unknown resource_type
+            event = StackStormResourceCUDEvent(
+                resource=data,
+                action=action,
+                raw_event=raw_event,
+                connector=self,
+            )
+            event.resource_type = resource_type
+
+        # Parse the message/event with opsdroid which triggers skills
+        await opsdroid.parse(event)
+
+    # async def respond(self):
+    #    pass
 #   .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    |    .  |
