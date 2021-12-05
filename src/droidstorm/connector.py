@@ -185,8 +185,11 @@ class StackStormConnector(Connector):
         event: sse_client.MessageEvent
         try:
             async for event in self.event_stream:
-                # TODO: decode json in event.data
-                await self._process_st2_event(event)
+                # If an execution on the API server takes too long, the message
+                # can be empty. In this case, rerun the query.
+                if not event.data:
+                    continue
+                await self._parse_st2_event(event)
         except ConnectionError:
             pass
 
@@ -214,8 +217,8 @@ class StackStormConnector(Connector):
         # eg: yield orjson.loads(message.data)
         # so I might need a separate listener for each event type
 
-    async def _process_st2_event(self, raw_event: sse_client.MessageEvent):
-        # Convert to opsdroid Message/Event object
+    async def _parse_st2_event(self, raw_event: sse_client.MessageEvent):
+        # Convert to opsdroid Message/Event and have pass to OpsDroid
         #
         # Message/Event objects take a pointer to the connector to
         # allow the skills to call the respond method
@@ -262,7 +265,7 @@ class StackStormConnector(Connector):
             event.resource_type = resource_type
 
         # Parse the message/event with opsdroid which triggers skills
-        await opsdroid.parse(event)
+        await self.opsdroid.parse(event)
 
     # async def respond(self):
     #    pass
