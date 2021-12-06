@@ -3,6 +3,8 @@ from opsdroid.events import Event, Message
 
 class Announcement(Message):
     """An announcement created by the StackStorm announcement runner.
+    
+    target is the route which maps too a connector instance
     """
 
 
@@ -66,4 +68,52 @@ class DeletePack(ResourceCUD):
     """
     
     resource_type = "Pack"
+    cud = "delete"
+
+
+class CreateExecution(ResourceCUD):
+    """An event created on Execution Create
+    """
+    
+    resource_type = "Execution"
+    cud = "create"
+
+
+class UpdateExecution(ResourceCUD):
+    """An event created on Execution Update
+    """
+    
+    resource_type = "Execution"
+    cud = "update"
+
+
+class DeleteExecution(ResourceCUD):
+    """An event created on Execution Delete
+    """
+    
+    resource_type = "Execution"
+    cud = "delete"
+
+
+class CreateExecutionOutput(ResourceCUD):
+    """An event created on ExecutionOutput Create
+    """
+    
+    resource_type = "ExecutionOutput"
+    cud = "create"
+
+
+class UpdateExecutionOutput(ResourceCUD):
+    """An event created on ExecutionOutput Update
+    """
+    
+    resource_type = "ExecutionOutput"
+    cud = "update"
+
+
+class DeleteExecutionOutput(ResourceCUD):
+    """An event created on ExecutionOutput Delete
+    """
+    
+    resource_type = "ExecutionOutput"
     cud = "delete"

@@ -75,20 +75,32 @@ class StackStormConnector(Connector):
             _LOGGER.error("You must define at least one StackStorm auth method.")
 
         self._st2_event_types = [
-            # anything other than chatops is a user-defined route
             "st2.announcement__*",
-            # chatops is there StackStorm-defined route
+            # we add a route for each connector
+            # chatops => Hubot; errbot => err-StackStorm'
             # "st2.announcement__chatops",
+            # "st2.announcement__errbot",
+            # "st2.announcement__<connector>",
+            # users can add their own route with core.announcement action
+            # "st2.announcement__<user-defined route>",
+            #
+            # route specified in action metadata:
+            #    notify.on_complete
+            #    notify.on_success
+            #    notify.on_failure
 
-            # "st2.workflow__create",
-            # "st2.workflow__update",
-            # "st2.workflow__delete",
             # "st2.execution__create",
             # "st2.execution__update",
             # "st2.execution__delete",
             # "st2.execution.output__create",
             # "st2.execution.output__update",
             # "st2.execution.output__delete",
+            
+            # these events are not available in the event stream
+            # but they could be if the streaming server listened to them
+            # "st2.workflow__create",
+            # "st2.workflow__update",
+            # "st2.workflow__delete",
             # "st2.workflow.status__*",
             # "st2.trigger__create",
             # "st2.trigger__update",
@@ -98,7 +110,7 @@ class StackStormConnector(Connector):
             # "st2.sensor__update",
             # "st2.sensor__delete",
 
-            # TODO: st2 needs new actionalias and pack events
+            # TODO: st2 needs new actionalias and pack events in event stream
             # "st2.actionalias__create",
             # "st2.actionalias__update",
             # "st2.actionalias__delete",
@@ -184,7 +196,6 @@ class StackStormConnector(Connector):
         await self._events_session.close()
 
     async def listen(self):
-        # st2 returns event.data as encoded json. we need to decode it.
         event: sse_client.MessageEvent
         try:
             async for event in self.event_stream:
@@ -239,13 +250,17 @@ class StackStormConnector(Connector):
         # drop initial "st2." and split
         resource_type, route = raw_event.type[4:].split("__", 1)
 
+        # st2 returns event.data as encoded json
         data = orjson.loads(raw_event.data)
 
         if resource_type == "announcement":
+            if route in ["chatops", "errbot"]:
+                # not for us. ignore it.
+                # chatops => Hubot; errbot => err-StackStorm
+                return
             event = st2_events.Announcement(
                 text=data,
-                # route is "chatops" in most cases
-                # otherwise, it is a user-defined route
+                # route is the target connector
                 target=route,
                 raw_event=raw_event,
                 connector=self,
@@ -287,6 +302,50 @@ class StackStormConnector(Connector):
                 )
             elif route == "delete":
                 event = st2_events.DeletePack(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            else:
+                # unknown route
+                return
+        elif resource_type == "execution":
+            if route == "create":
+                event = st2_events.CreateExecution(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "update":
+                event = st2_events.UpdateExecution(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "delete":
+                event = st2_events.DeleteExecution(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            else:
+                # unknown route
+                return
+        elif resource_type == "execution.output":
+            if route == "create":
+                event = st2_events.CreateExecutionOutput(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "update":
+                event = st2_events.UpdateExecutionOutput(
+                    resource=data,
+                    raw_event=raw_event,
+                    connector=self,
+                )
+            elif route == "delete":
+                event = st2_events.DeleteExecutionOutput(
                     resource=data,
                     raw_event=raw_event,
                     connector=self,
