@@ -77,7 +77,7 @@ class StackStormConnector(Connector):
         self._st2_event_types = [
             "st2.announcement__*",
             # we add a route for each connector
-            # chatops => Hubot; errbot => err-StackStorm'
+            # chatops => all bots; hubot => Hubot; errbot => err-StackStorm'
             # "st2.announcement__chatops",
             # "st2.announcement__errbot",
             # "st2.announcement__<connector>",
@@ -85,9 +85,9 @@ class StackStormConnector(Connector):
             # "st2.announcement__<user-defined route>",
             #
             # route specified in action metadata:
-            #    notify.on_complete
-            #    notify.on_success
-            #    notify.on_failure
+            #    notify.on-complete
+            #    notify.on-success
+            #    notify.on-failure
 
             # "st2.execution__create",
             # "st2.execution__update",
@@ -254,14 +254,14 @@ class StackStormConnector(Connector):
         data = orjson.loads(raw_event.data)
 
         if resource_type == "announcement":
-            if route in ["chatops", "errbot"]:
+            if route in ["hubot", "errbot"]:
                 # not for us. ignore it.
-                # chatops => Hubot; errbot => err-StackStorm
+                # chatops => all bots; hubot => Hubot; errbot => err-StackStorm
+                # TODO: Make this ignore list configurable.
                 return
             event = st2_events.Announcement(
                 text=data,
-                # route is the target connector
-                target=route,
+                route=route,
                 raw_event=raw_event,
                 connector=self,
             )

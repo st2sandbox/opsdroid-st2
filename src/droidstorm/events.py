@@ -4,8 +4,17 @@ from opsdroid.events import Event, Message
 class Announcement(Message):
     """An announcement created by the StackStorm announcement runner.
     
-    target is the route which maps too a connector instance
+    route is the route which maps to a connector instance.
+    If route is "chatops" then it goes to all connectors.
+    TODO: make destination connectors configurable for the "chatops" route.
     """
+
+    def __init__(self, text, route, *args, **kwargs):
+        """Create object with minimum properties."""
+        super().__init__(text, *args, **kwargs)
+        # TODO: allow route that is <connector>.<channel>
+        self.route = route
+        # self.target = target
 
 
 class ResourceCUD(Event):
