@@ -267,13 +267,25 @@ class StackStormConnector(Connector):
                 # chatops => all bots; hubot => Hubot; errbot => err-StackStorm
                 # TODO: Make this ignore list configurable.
                 return
+            # data payload is action parameters from chatops.post_message:
+            #    user, whisper, message. channel, context
+            # or from core.announcement:
+            #    message
             event = st2_events.Announcement(
-                text=data,
+                text=data.get("message", ""),
+                target=data.get("channel"),
+                user=data.get("user"),
+                # =data.get("whisper"),
+                # =data.get("context"),
+                # =data.get("extra"),
                 route=route,
                 raw_event=raw_event,
                 connector=self,
             )
         elif resource_type == "actionalias":
+            # data payload is an action alias model with parameters:
+            #    name, ref, description, enabled, action_ref,
+            #    formats, ack, result, extra, immutable_parameters
             if route == "create":
                 event = st2_events.CreateActionAlias(
                     resource=data,
