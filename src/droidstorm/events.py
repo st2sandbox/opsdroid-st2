@@ -12,7 +12,7 @@ class Announcement(Message):
     def __init__(self, text, route, *args, **kwargs):
         """Create object with minimum properties."""
         super().__init__(text, *args, **kwargs)
-        # TODO: allow route that is <connector>.<channel>
+        # TODO: allow route that is <connector>.<channel> or maybe opsdroid.<connector>
         self.route = route
         # self.target = target
 

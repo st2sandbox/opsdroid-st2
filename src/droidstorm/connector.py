@@ -79,6 +79,7 @@ class StackStormConnector(Connector):
             # we add a route for each connector
             # chatops => all bots; hubot => Hubot; errbot => err-StackStorm'
             # "st2.announcement__chatops",
+            # "st2.announcement__hubot",  # odd. Hubot does not seem to listen for this
             # "st2.announcement__errbot",
             # "st2.announcement__<connector>",
             # users can add their own route with core.announcement action
@@ -88,6 +89,13 @@ class StackStormConnector(Connector):
             #    notify.on-complete
             #    notify.on-success
             #    notify.on-failure
+            # or route specified when creating ActionAliasExecution
+            # with the notification-route. This effectively
+            # overrides action metadata's
+            #    notify.on-complete.routes = [notification-route]
+            # but, hubot does not seem to do anything with announcement__hubot
+            # errbot only listens for __errbot and instructions say to
+            # change the default route from chatops to errbot.
 
             # "st2.execution__create",
             # "st2.execution__update",
