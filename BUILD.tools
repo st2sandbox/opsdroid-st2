@@ -41,9 +41,7 @@ python_requirement(
 python_requirement(
     name="isort-reqs",
     resolve="isort",
-    requirements=[
-        "isort[pyproject,colors]>=5.9.3,<6.0"
-    ],
+    requirements=["isort[pyproject,colors]>=5.9.3,<6.0"],
 )
 
 python_requirement(
