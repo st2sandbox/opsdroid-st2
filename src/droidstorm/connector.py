@@ -1,20 +1,26 @@
 """A connector for StackStorm."""
 
 import asyncio
+import logging
 import threading
-
 from typing import TYPE_CHECKING
 
+import orjson
 from aiohttp import ClientSession
 from aiohttp_sse_client import client as sse_client
-import orjson
 from opsdroid.connector import Connector, register_event
 from opsdroid.events import Event
-from st2client.client import DEFAULT_API_PORT, DEFAULT_AUTH_PORT, DEFAULT_STREAM_PORT, DEFAULT_API_VERSION, Client
+from st2client.client import (
+    DEFAULT_API_PORT,
+    DEFAULT_API_VERSION,
+    DEFAULT_AUTH_PORT,
+    DEFAULT_STREAM_PORT,
+    Client,
+)
 from voluptuous import Inclusive, Required
 from yarl import URL
 
-import .events as st2_events
+from . import events as st2_events
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = {
@@ -32,31 +38,30 @@ CONFIG_SCHEMA = {
     "api_key": str,
     Inclusive("username", "login"): str,
     Inclusive("password", "login"): str,
-} 
+}
 
 
 class StackStormConnector(Connector):
-    """An OpsDroid Connector that brings the StackStorm event stream into OpsDroid.
-    
+    """An OpsDroid Connector that brings the StackStorm event stream into
+    OpsDroid.
+
     This connector is responsible for communication with StackStorm.
     It handles connecting to StackStorm to get the event stream.
     Then, it wraps those events in an OpsDroid event to be handled by
     parsers, matchers, and skills designed to work with StackStorm events.
-    
+
     This also handles making StackStorm api calls for any skills that need to
     retrieve more data from or that need to make changes in, StackStorm.
     """
-    
+
     def __init__(self, config, opsdroid):
         _LOGGER.debug(_("Starting StackStorm Connector."))
         super().__init__(config, opsdroid=opsdroid)
-        self.name = config.get("name", "st2") 
+        self.name = config.get("name", "st2")
         self.client = None
 
         # be explicit with Client config
-        self.api_version = api_version = config.get(
-            "api_version", DEFAULT_API_VERSION
-        )
+        self.api_version = api_version = config.get("api_version", DEFAULT_API_VERSION)
         self.base_url = base_url = config["base_url"]
         self.api_url = config.get(
             "api_url", f"{base_url}:{DEFAULT_API_PORT}/{api_version}"
@@ -67,7 +72,7 @@ class StackStormConnector(Connector):
         self.stream_url = config.get(
             "api_url", f"{base_url}:{DEFAULT_STREAM_PORT}/{api_version}"
         )
-        
+
         token = config.get("token")
         api_key = config.get("api_key")
         username = config.get("username")
@@ -96,14 +101,12 @@ class StackStormConnector(Connector):
             # but, hubot does not seem to do anything with announcement__hubot
             # errbot only listens for __errbot and instructions say to
             # change the default route from chatops to errbot.
-
             # "st2.execution__create",
             # "st2.execution__update",
             # "st2.execution__delete",
             # "st2.execution.output__create",
             # "st2.execution.output__update",
             # "st2.execution.output__delete",
-            
             # these events are not available in the event stream
             # but they could be if the streaming server listened to them
             # "st2.workflow__create",
@@ -117,7 +120,6 @@ class StackStormConnector(Connector):
             # "st2.sensor__create",
             # "st2.sensor__update",
             # "st2.sensor__delete",
-
             # TODO: st2 needs new actionalias and pack events in event stream
             # "st2.actionalias__create",
             # "st2.actionalias__update",
@@ -151,7 +153,7 @@ class StackStormConnector(Connector):
             # TODO: this is a blocking api call
             client.tokens.create(
                 token,
-                auth=(username=username, password=password),
+                auth=(username, password),
             )
             client.token = token
         # issue whoami to check auth
@@ -175,8 +177,11 @@ class StackStormConnector(Connector):
         self._events_session = ClientSession()
 
         # https://api.stackstorm.com/stream/v1/stream/#/stream_controller.get_all
-        event_stream_url = URL(self.stream_url) / "stream" %
-            {"events": ",".join(self._st2_event_types)}
+        event_stream_url = (
+            URL(self.stream_url)
+            / "stream"
+            % {"events": ",".join(self._st2_event_types)}
+        )
         headers = {}
         api_key = self.config.get("api_key", None)
         if api_key:
@@ -251,7 +256,7 @@ class StackStormConnector(Connector):
         # raw_event.origin: str  # str(response.real_url.origin())
         # raw_event.last_event_id: str  # id field
 
-        if not raw_event.type or not raw_event.type. startswith("st2."):
+        if not raw_event.type or not raw_event.type.startswith("st2."):
             # log unknown event. this should not happen
             return
 
@@ -387,4 +392,6 @@ class StackStormConnector(Connector):
 
     # async def respond(self):
     #    pass
+
+
 #   .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    ,    .    |    .  |

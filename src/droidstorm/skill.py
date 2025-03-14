@@ -6,10 +6,10 @@ from opsdroid.skill import Skill
 class StackStormActionAliasesSkill(Skill):
     """OpsDroid Skill that forwards matching events to StackStorm.
 
-    This skill gets dynamically reloaded to add all of the matchers
-    from StackStorm's action aliases.
-    When an action alias is matched, the event that triggered
-    it gets transformed into an action execution api call.
+    This skill gets dynamically reloaded to add all of the matchers from
+    StackStorm's action aliases. When an action alias is matched, the
+    event that triggered it gets transformed into an action execution
+    api call.
     """
 
     def __init__(self, opsdroid, config, *args, **kwargs):
@@ -29,7 +29,6 @@ class StackStormActionAliasesSkill(Skill):
         return self._st2
 
     async def action_alias(self, event):
-        """the primary action alias skill that gets dynamically
-        updated with matchers based on StackStorm's config.
-        """
+        """the primary action alias skill that gets dynamically updated with
+        matchers based on StackStorm's config."""
         # await event.respond("...")
