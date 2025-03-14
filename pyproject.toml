@@ -1,23 +1,24 @@
-[tool.poetry]
+[project]
 name = "opsdroid-st2"
 version = "0.1.0"
 description = "ChatOps for StackStorm based on OpsDroid. This contains the components for the OpsDroid side of chatops, including connector and dynamic skill."
 authors = [
-  "Jacob Floyd <cognifloyd@gmail.com>"
+  {name = "StackStorm", email = "info@stackstorm.com"},
+  {name = "Jacob Floyd", email = "cognifloyd@gmail.com>"},
 ]
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-opsdroid = {version = "^0.24.0", extras = ["database_mongo", "database_redis"]}
-# st2client
-# aiohttp
-# aiohttp-sse-client
-# yarl
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "opsdroid[database_mongo,database_redis]==0.30.0",
+  # "st2client",
+  # "aiohttp",
+  # "aiohttp-sse-client",
+  # "yarl",
+]
 
-[tool.poetry.dev-dependencies]
-
-[tool.poetry.extras]
+[project.optional-dependencies]
 connector_matrix = ["opsdroid[connector_matrix,database_matrix]"]
 connector_matrix_e2e = ["opsdroid[connector_matrix_e2e,connector_matrix,database_matrix]"]
 connector_mattermost = ["opsdroid[connector_mattermost]"]
@@ -28,13 +29,13 @@ connector_telegram = ["opsdroid[connector_telegram]"]
 parser_dialogflow = ["opsdroid[parser_dialogflow]"]
 parser_watson = ["opsdroid[parser_watson]"]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[project.urls]
+homepage = "https://stackstorm.com"
+github = "https://github.com/st2sandbox/opsdroid-st2"
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py311']
 
 [tool.isort]
 profile = "black"
