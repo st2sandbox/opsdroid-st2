@@ -1,0 +1,47 @@
+---
+name: Validate Pants Metadata
+
+on:
+  push:
+    branches:
+      # only on merges to main branch
+      - main
+      # and version branches, which only include minor versions (eg: v3.4)
+      - v[0-9]+.[0-9]+
+    tags:
+      # also version tags, which include bugfix releases (eg: v3.4.0)
+      - v[0-9]+.[0-9]+.[0-9]+
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      # Only for PRs targeting those branches
+      - main
+      - v[0-9]+.[0-9]+
+
+jobs:
+  pants-tailor:
+    name: Make sure pants BUILD files are up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-BUILD
+
+      - name: Check BUILD files
+        run: |
+          pants tailor --check update-build-files --check ::
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-py${{ matrix.python-version }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
