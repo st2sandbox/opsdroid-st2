@@ -55,7 +55,7 @@ jobs:
 
       - name: Lint
         run: |
-          ./pants lint ::
+          pants lint ::
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
