@@ -9,6 +9,8 @@
 //     "CPython<3.12,>=3.11"
 //   ],
 //   "generated_with_requirements": [
+//     "aiohttp",
+//     "aiohttp-sse-client",
 //     "opsdroid[connector_matrix,connector_matrix_e2e,database_matrix]",
 //     "opsdroid[connector_matrix,database_matrix]",
 //     "opsdroid[connector_mattermost]",
@@ -16,14 +18,14 @@
 //     "opsdroid[connector_teams]",
 //     "opsdroid[connector_telegram]",
 //     "opsdroid[connector_webex]",
-//     "opsdroid[database_mongo,database_redis]==0.30.0",
 //     "opsdroid[parser_dialogflow]",
 //     "opsdroid[parser_watson]",
 //     "pytest-benchmark[histogram]==3.4.1",
 //     "pytest-cov!=2.12.1,<3.1,>=2.12",
 //     "pytest-icdiff",
 //     "pytest-xdist<3,>=2.5",
-//     "pytest==7.0.1"
+//     "pytest==7.0.1",
+//     "yarl"
 //   ],
 //   "manylinux": "manylinux2014",
 //   "requirement_constraints": [],
@@ -221,23 +223,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "9ac0d0b3b485d293b8ca1987e6de8658d7dafcca1cddfcd1d506cae8cdebfdd6",
-              "url": "https://files.pythonhosted.org/packages/9b/a9/0da089c3ae7a31cbcd2dcf0214f6f571e1295d292b6139e2bac68ec081d0/aioredis-2.0.1-py3-none-any.whl"
+              "hash": "42c81ee9213e9fc8bc412b063bac3a813e02e75250c4c8049222234d41c9b024",
+              "url": "https://files.pythonhosted.org/packages/25/c9/ad514e70a549db22e118f0366c0bb38c5a90cb407978cb6c3d1482760889/aiohttp_sse_client-0.2.1-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "eaa51aaf993f2d71f54b70527c440437ba65340588afeb786cd87c55c89cd98e",
-              "url": "https://files.pythonhosted.org/packages/2e/cf/9eb144a0b05809ffc5d29045c4b51039000ea275bc1268d0351c9e7dfc06/aioredis-2.0.1.tar.gz"
+              "hash": "5004e29271624af586158dc7166cb0687a7a5997aab5b808f4b53400e1b72e3b",
+              "url": "https://files.pythonhosted.org/packages/71/c3/4825c5f37909a70c8018924b3d521847dd7acf1fce7e1054574bafed2271/aiohttp-sse-client-0.2.1.tar.gz"
             }
           ],
-          "project_name": "aioredis",
+          "project_name": "aiohttp-sse-client",
           "requires_dists": [
-            "async-timeout",
-            "hiredis>=1.0; implementation_name == \"cpython\" and extra == \"hiredis\"",
-            "typing-extensions"
+            "aiohttp>=3",
+            "attrs",
+            "multidict",
+            "yarl"
           ],
-          "requires_python": ">=3.6",
-          "version": "2.0.1"
+          "requires_python": null,
+          "version": "0.2.1"
         },
         {
           "artifacts": [
@@ -1157,46 +1160,6 @@
           ],
           "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7",
           "version": "1.1.1"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
-              "hash": "b4c34b7d10b51bcc3a5071e7b8dee77939f1e878477eeecc965e9835f63c6c86",
-              "url": "https://files.pythonhosted.org/packages/68/1b/e0a87d256e40e8c888847551b20a017a6b98139178505dc7ffb96f04e954/dnspython-2.7.0-py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "ce9c432eda0dc91cf618a5cedf1a4e142651196bbcd2c80e89ed5a907e5cfaf1",
-              "url": "https://files.pythonhosted.org/packages/b5/4a/263763cb2ba3816dd94b08ad3a33d5fdae34ecb856678773cc40a3605829/dnspython-2.7.0.tar.gz"
-            }
-          ],
-          "project_name": "dnspython",
-          "requires_dists": [
-            "aioquic>=1.0.0; extra == \"doq\"",
-            "black>=23.1.0; extra == \"dev\"",
-            "coverage>=7.0; extra == \"dev\"",
-            "cryptography>=43; extra == \"dnssec\"",
-            "flake8>=7; extra == \"dev\"",
-            "h2>=4.1.0; extra == \"doh\"",
-            "httpcore>=1.0.0; extra == \"doh\"",
-            "httpx>=0.26.0; extra == \"doh\"",
-            "hypercorn>=0.16.0; extra == \"dev\"",
-            "idna>=3.7; extra == \"idna\"",
-            "mypy>=1.8; extra == \"dev\"",
-            "pylint>=3; extra == \"dev\"",
-            "pytest-cov>=4.1.0; extra == \"dev\"",
-            "pytest>=7.4; extra == \"dev\"",
-            "quart-trio>=0.11.0; extra == \"dev\"",
-            "sphinx-rtd-theme>=2.0.0; extra == \"dev\"",
-            "sphinx>=7.2.0; extra == \"dev\"",
-            "trio>=0.23; extra == \"trio\"",
-            "twine>=4.0.0; extra == \"dev\"",
-            "wheel>=0.42.0; extra == \"dev\"",
-            "wmi>=1.5.1; extra == \"wmi\""
-          ],
-          "requires_python": ">=3.9",
-          "version": "2.7.0"
         },
         {
           "artifacts": [
@@ -2211,45 +2174,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "61bdf1afded179f008d423f98066348157686f25a90776ea155db5f47f57d605",
-              "url": "https://files.pythonhosted.org/packages/ab/a6/e915e3225cc431c7ff07fd3e5ae138f6eb1c3ef4f8e8356cab1ea5dc1ed5/motor-3.7.0-py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "0dfa1f12c812bd90819c519b78bed626b5a9dbb29bba079ccff2bfa8627e0fec",
-              "url": "https://files.pythonhosted.org/packages/2b/c0/b94558a88fb8406b092bb180c6fa5fb3068f8ec2c7e84dd2b0625f4f4f6e/motor-3.7.0.tar.gz"
-            }
-          ],
-          "project_name": "motor",
-          "requires_dists": [
-            "aiohttp; extra == \"docs\"",
-            "aiohttp>=3.8.7; extra == \"test\"",
-            "cffi>=1.17.0rc1; python_version == \"3.13\" and extra == \"test\"",
-            "furo==2024.8.6; extra == \"docs\"",
-            "mockupdb; extra == \"test\"",
-            "pymongo<5.0,>=4.9",
-            "pymongo[aws]<5,>=4.5; extra == \"aws\"",
-            "pymongo[encryption]<5,>=4.5; extra == \"encryption\"",
-            "pymongo[encryption]<5,>=4.5; extra == \"test\"",
-            "pymongo[gssapi]<5,>=4.5; extra == \"gssapi\"",
-            "pymongo[ocsp]<5,>=4.5; extra == \"ocsp\"",
-            "pymongo[snappy]<5,>=4.5; extra == \"snappy\"",
-            "pymongo[zstd]<5,>=4.5; extra == \"zstd\"",
-            "pytest-asyncio; extra == \"test\"",
-            "pytest>=7; extra == \"test\"",
-            "readthedocs-sphinx-search~=0.3; extra == \"docs\"",
-            "sphinx-rtd-theme<3,>=2; extra == \"docs\"",
-            "sphinx<8,>=5.3; extra == \"docs\"",
-            "tornado; extra == \"docs\"",
-            "tornado>=5; extra == \"test\""
-          ],
-          "requires_python": ">=3.9",
-          "version": "3.7.0"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "9dbac5384a10bbbf4dae5c7ea0d707d14e087b92c5aa4954b3feaa2d1aa0bcb7",
               "url": "https://files.pythonhosted.org/packages/93/5a/2e663ef56a5d89eba962941b267ebe5be8c5ea340a9929d286e2f5fac505/msal-1.32.0-py3-none-any.whl"
             },
@@ -3204,77 +3128,6 @@
           ],
           "requires_python": ">=3.9",
           "version": "2.10.1"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
-              "hash": "74ebb54f450e557e6f0e950790bab9c9f190243077262e72085ff8feff17a10f",
-              "url": "https://files.pythonhosted.org/packages/13/bb/570aec1cefe0e6c46e8380db42ed972e49d6f52db39bcd166370985bc7cf/pymongo-4.11.2-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "d0ee3e0275f67bddcd83b2263818b7c4ae7af1ecafebe7eb7fd16389457ec210",
-              "url": "https://files.pythonhosted.org/packages/12/2f/39971830e0a0574ad5b98952428f3f768fad2532eaa8c80e48ca967e5dbc/pymongo-4.11.2.tar.gz"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "c87ad59bbc88bc41a0396ee87f2d0ad45d23db5649fd0ee2eff6fbc35c046db0",
-              "url": "https://files.pythonhosted.org/packages/54/62/919ef497130f35c925f763c7632ce15a608a6eec7a953b422fc37802b231/pymongo-4.11.2-cp311-cp311-macosx_10_9_x86_64.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "e9ace309794cc5ad5be94b873ad17e85dda09c3bb54c150aa71e9c03447d6763",
-              "url": "https://files.pythonhosted.org/packages/74/70/701159faad3107f9e80f4bfbfb7166d098184c6973271939da65a184a81f/pymongo-4.11.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "ec7c1cfa6dc290f8d7bd85a6ab1e942a2fac4671b2d8c67437fc7c33b2d4e8b4",
-              "url": "https://files.pythonhosted.org/packages/79/ce/86f7837bd1ad131aae825302a1f97abf5a13d97d2439459fffd63a5e2acc/pymongo-4.11.2-cp311-cp311-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "1cedc2e38e0186676f96e1d76f40aa2cc016f392ed71f0649a67fd2520dcb35b",
-              "url": "https://files.pythonhosted.org/packages/b0/02/04b8f24d81c762eeb6c805a89b7d48e6e91d6765d8f30fef25ab21a55171/pymongo-4.11.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "ad13aee24d77aef19606eff569bea18124be097a64767ab631e7980f4b3a0a74",
-              "url": "https://files.pythonhosted.org/packages/b2/12/a5ed2e100728192844d3a92b92fa0de3eff57c0463ea912827ab6fc01292/pymongo-4.11.2-cp311-cp311-macosx_11_0_arm64.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "e0c6dfa545205547fb9205243a7327de02141c17cc6910544f2805b07ad45a96",
-              "url": "https://files.pythonhosted.org/packages/fb/7a/66bab3c63f3bb91603ba699fa1faf9c53fd0749790fb434bb358b1609517/pymongo-4.11.2-cp311-cp311-manylinux_2_17_s390x.manylinux2014_s390x.whl"
-            }
-          ],
-          "project_name": "pymongo",
-          "requires_dists": [
-            "certifi; (os_name == \"nt\" or sys_platform == \"darwin\") and extra == \"encryption\"",
-            "certifi; (os_name == \"nt\" or sys_platform == \"darwin\") and extra == \"ocsp\"",
-            "cryptography>=2.5; extra == \"ocsp\"",
-            "dnspython<3.0.0,>=1.16.0",
-            "furo==2024.8.6; extra == \"docs\"",
-            "pykerberos; os_name != \"nt\" and extra == \"gssapi\"",
-            "pymongo-auth-aws<2.0.0,>=1.1.0; extra == \"aws\"",
-            "pymongo-auth-aws<2.0.0,>=1.1.0; extra == \"encryption\"",
-            "pymongocrypt<2.0.0,>=1.12.0; extra == \"encryption\"",
-            "pyopenssl>=17.2.0; extra == \"ocsp\"",
-            "pytest-asyncio>=0.24.0; extra == \"test\"",
-            "pytest>=8.2; extra == \"test\"",
-            "python-snappy; extra == \"snappy\"",
-            "readthedocs-sphinx-search~=0.3; extra == \"docs\"",
-            "requests<3.0.0; extra == \"ocsp\"",
-            "service-identity>=18.1.0; extra == \"ocsp\"",
-            "sphinx-autobuild>=2020.9.1; extra == \"docs\"",
-            "sphinx-rtd-theme<4,>=2; extra == \"docs\"",
-            "sphinx<9,>=5.3; extra == \"docs\"",
-            "sphinxcontrib-shellcheck<2,>=1; extra == \"docs\"",
-            "winkerberos>=0.5.0; os_name == \"nt\" and extra == \"gssapi\"",
-            "zstandard; extra == \"zstd\""
-          ],
-          "requires_python": ">=3.9",
-          "version": "4.11.2"
         },
         {
           "artifacts": [
@@ -4612,6 +4465,8 @@
   "pip_version": "24.2",
   "prefer_older_binary": false,
   "requirements": [
+    "aiohttp",
+    "aiohttp-sse-client",
     "opsdroid[connector_matrix,connector_matrix_e2e,database_matrix]",
     "opsdroid[connector_matrix,database_matrix]",
     "opsdroid[connector_mattermost]",
@@ -4619,14 +4474,14 @@
     "opsdroid[connector_teams]",
     "opsdroid[connector_telegram]",
     "opsdroid[connector_webex]",
-    "opsdroid[database_mongo,database_redis]==0.30.0",
     "opsdroid[parser_dialogflow]",
     "opsdroid[parser_watson]",
     "pytest-benchmark[histogram]==3.4.1",
     "pytest-cov!=2.12.1,<3.1,>=2.12",
     "pytest-icdiff",
     "pytest-xdist<3,>=2.5",
-    "pytest==7.0.1"
+    "pytest==7.0.1",
+    "yarl"
   ],
   "requires_python": [
     "<3.12,>=3.11"

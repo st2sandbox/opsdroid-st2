@@ -13,9 +13,9 @@ requires-python = ">=3.11,<3.12"
 dependencies = [
   "opsdroid[database_mongo,database_redis]==0.30.0",
   # "st2client",
-  # "aiohttp",
-  # "aiohttp-sse-client",
-  # "yarl",
+  "aiohttp",
+  "aiohttp-sse-client",
+  "yarl",
 ]
 
 [project.optional-dependencies]
