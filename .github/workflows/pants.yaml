@@ -22,12 +22,23 @@ jobs:
   pants-tailor:
     name: Make sure pants BUILD files are up-to-date
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
+        python:
+          - {version-short: '3.11', version: '3.11.11'}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: 'Set up Python (${{ matrix.python.version }})'
+        id: python
+        uses: actions/setup-python@v5
         with:
-          # a test uses a submodule, and pants needs access to it to calculate deps.
-          submodules: 'true'
+          python-version: '${{ matrix.python.version }}'
 
       - name: Initialize Pants and its GHA caches
         uses: ./.github/actions/init-pants
