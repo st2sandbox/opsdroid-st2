@@ -34,6 +34,9 @@ select =
     # L: License check plugin by st2
     #L
 
+# NOTE: opsdroid adds _ to builtins by calling gettext.install()
+builtins = _
+
 # L102 - apache license header
 #enable-extensions = L101,L102
 # Configuration for flake8-copyright extension

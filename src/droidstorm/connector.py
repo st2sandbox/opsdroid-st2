@@ -1,15 +1,11 @@
 """A connector for StackStorm."""
 
-import asyncio
 import logging
-import threading
-from typing import TYPE_CHECKING
 
 import orjson
 from aiohttp import ClientSession
 from aiohttp_sse_client import client as sse_client
-from opsdroid.connector import Connector, register_event
-from opsdroid.events import Event
+from opsdroid.connector import Connector  # , register_event
 from st2client.client import (
     DEFAULT_API_PORT,
     DEFAULT_API_VERSION,
@@ -17,6 +13,7 @@ from st2client.client import (
     DEFAULT_STREAM_PORT,
     Client,
 )
+from st2client.models.auth import Token
 from voluptuous import Inclusive, Required
 from yarl import URL
 
