@@ -1,5 +1,6 @@
 shell_sources(
     name="root",
+    skip_shfmt=True,
 )
 
 python_requirements(
